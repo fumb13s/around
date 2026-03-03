@@ -45,6 +45,47 @@ BOTH MODES (from here on, issue_number is always set):
   8. Ask user: mark PR ready (default) or merge
 ```
 
+## Topic Mode: Step 0b — BRAINSTORM Phase
+
+**This step only runs in topic mode** (when the user provides a topic instead of an issue number).
+
+Dispatch a brainstorming subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`) with this prompt structure:
+
+> You are a brainstorming agent. Your job is to explore a topic and produce a design document.
+>
+> **Topic:** {TOPIC_TEXT}
+>
+> Use `superpowers:brainstorming` to explore the codebase, understand the problem space, and design a solution. When brainstorming needs user input (clarifying questions, design choices), return them to me — I will relay to the user and resume you with answers.
+>
+> **IMPORTANT differences from normal brainstorming:**
+> - Do NOT invoke `superpowers:writing-plans` at the end. Your job ends when the design is complete.
+> - Do NOT write a design doc to disk. Instead, return the complete design document as your final output.
+> - When the design is complete, return a message starting with `DESIGN_COMPLETE:` followed by the full design document text.
+>
+> When you need user input, return a message starting with `USER_INPUT_NEEDED:` followed by the question.
+
+**Relay pattern:** Same as the planning phase — relay `USER_INPUT_NEEDED:` to the user via `AskUserQuestion`, resume subagent with answers.
+
+**When DESIGN_COMPLETE:** Capture the design text and proceed to Step 0c.
+
+## Topic Mode: Step 0c — Create GitHub Issue
+
+**This step only runs in topic mode**, after the brainstorm subagent returns `DESIGN_COMPLETE:`.
+
+1. **Extract a title** from the design document: use the first `# heading` in the design text. If there is no heading, use the first sentence.
+
+2. **Create the issue:**
+
+```
+gh issue create --title "<extracted-title>" --body "<full-design-text>"
+```
+
+3. **Capture the issue number** from the command output (gh prints the issue URL, extract the number from it).
+
+4. **Announce:** "Created issue #N: <title>. Proceeding with development."
+
+5. **Set `issue_number`** to the newly created number and **fall through to Step 1** below. From this point forward, the flow is identical to issue mode.
+
 ## Step 1: Fetch Issue
 
 Use `gh issue view <number> --json title,body,labels` or the GitHub MCP tool to fetch the issue. Store the title and body — you'll pass these to subagents.
