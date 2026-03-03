@@ -194,7 +194,7 @@ gh pr comment <pr-number> --body "<review-content>
 
 5. **Validate the reviewer's status.** Parse the `Critical:` and `Important:` counts from the `REVIEW_RESULT` block. If either count is greater than 0 but the reviewer returned `Status: APPROVED`, override the status to `NEEDS_FIXES` and log: "Overriding reviewer status: found N critical and M important issues but reviewer returned APPROVED."
 
-   This is a safety net — the reviewer prompt (Task 1) should already produce the correct status, but the orchestrator enforces the rule independently.
+   This is a safety net — the reviewer prompt's status rule should already produce the correct status, but the orchestrator enforces the rule independently.
 
 6. **If Status is NEEDS_FIXES** (critical or important issues):
 
