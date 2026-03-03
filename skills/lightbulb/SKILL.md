@@ -1,37 +1,99 @@
 ---
 name: lightbulb
 description: >
-  Use when the user provides a GitHub issue number and wants end-to-end
-  autonomous development — planning, implementation, review, and PR creation —
-  handled by subagents in an isolated worktree.
+  Use when the user provides a GitHub issue number OR a topic/idea and wants
+  end-to-end autonomous development — planning, implementation, review, and PR
+  creation — handled by subagents in an isolated worktree. When given a topic
+  instead of an issue number, brainstorms a design first and files it as a
+  GitHub issue before proceeding.
 ---
 
 # Lightbulb
 
-End-to-end autonomous development from a GitHub issue. Dispatches subagents for each phase: planning, implementation, review, and fix. All work happens in an isolated git worktree. The orchestrator (you) manages phase transitions, relays user interaction, and handles the PR lifecycle.
+End-to-end autonomous development from a GitHub issue or a topic/idea. When given a topic instead of an issue number, brainstorms a design and files it as a GitHub issue first. Then dispatches subagents for each phase: planning, implementation, review, and fix. All work happens in an isolated git worktree. The orchestrator (you) manages phase transitions, relays user interaction, and handles the PR lifecycle.
 
-**Announce at start:** "I'm using the lightbulb skill to develop issue #N end-to-end."
+**Announce at start:**
+- **Issue mode:** "I'm using the lightbulb skill to develop issue #N end-to-end."
+- **Topic mode:** "I'm using the lightbulb skill to brainstorm and develop a new idea end-to-end."
 
 ## Input
 
-- `issue_number` (required) — GitHub issue number in the current repo.
+- `issue_number` OR `topic` (one required):
+  - `issue_number` — GitHub issue number in the current repo. Triggers **issue mode**.
+  - `topic` — free-text idea or feature description. Triggers **topic mode**.
 - `max_review_rounds` (optional, default 5) — cap on review-fix loop iterations.
 
-Parse these from the user's message. If the issue number is ambiguous, ask.
+Parse these from the user's message. If the message contains a `#N` reference or bare number referring to a GitHub issue, use issue mode. If it contains a topic/idea description without an issue number, use topic mode. If ambiguous, ask.
 
 ## Flow
 
 ```
-1. Parse input (issue number, optional max rounds)
-2. Fetch issue from GitHub
-3. Set up worktree — REQUIRED SUB-SKILL: superpowers:using-git-worktrees
-4. PLAN — dispatch planning subagent
-5. IMPLEMENT — dispatch implementation subagent
-6. Create draft PR linked to the issue
-7. REVIEW LOOP (up to N rounds)
-8. Check CI pipelines
-9. Ask user: mark PR ready (default) or merge
+IF TOPIC MODE:
+  0a. Parse input (topic text, optional max rounds)
+  0b. BRAINSTORM — dispatch brainstorming subagent with the topic
+  0c. Create GitHub issue from brainstorm output (design doc = issue body)
+  0d. Set issue_number to the newly created issue, fall through to step 1
+
+BOTH MODES (from here on, issue_number is always set):
+  1. Parse/fetch issue from GitHub
+  2. Set up worktree — REQUIRED SUB-SKILL: superpowers:using-git-worktrees
+  3. PLAN — dispatch planning subagent
+  4. IMPLEMENT — dispatch implementation subagent
+  5. Create draft PR linked to the issue
+  6. REVIEW LOOP (up to N rounds)
+  7. Check CI pipelines
+  8. Ask user: mark PR ready (default) or merge
 ```
+
+## Topic Mode: Step 0b — BRAINSTORM Phase
+
+After parsing the input (Step 0a), if topic mode is active, dispatch a brainstorming subagent.
+
+**This step only runs in topic mode** (when the user provides a topic instead of an issue number).
+
+Dispatch a brainstorming subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`) with this prompt structure:
+
+> You are a brainstorming agent. Your job is to explore a topic and produce a design document.
+>
+> **Topic:** {TOPIC_TEXT}
+>
+> Use `superpowers:brainstorming` to explore the codebase, understand the problem space, and design a solution. When brainstorming needs user input (clarifying questions, design choices), return them to me — I will relay to the user and resume you with answers.
+>
+> **IMPORTANT differences from normal brainstorming:**
+> - Do NOT invoke `superpowers:writing-plans` at the end. Your job ends when the design is complete.
+> - Do NOT write a design doc to disk. Instead, return the complete design document as your final output.
+> - When the design is complete, return a message starting with `DESIGN_COMPLETE:` followed by the full design document text.
+>
+> When you need user input, return a message starting with `USER_INPUT_NEEDED:` followed by the question.
+
+**Relay pattern:** Same as the planning phase — relay `USER_INPUT_NEEDED:` to the user via `AskUserQuestion`, resume subagent with answers.
+
+**When DESIGN_COMPLETE:** Capture the design text and proceed to Step 0c.
+
+## Topic Mode: Step 0c — Create GitHub Issue
+
+**This step only runs in topic mode**, after the brainstorm subagent returns `DESIGN_COMPLETE:`.
+
+1. **Extract a title** from the design document: use the first `# heading` in the design text. If there is no heading, use the first sentence.
+
+2. **Create the issue** using a HEREDOC to safely handle multiline Markdown, quotes, and backticks in the design text:
+
+```
+gh issue create --title "<extracted-title>" --body "$(cat <<'EOF'
+<full-design-text>
+EOF
+)"
+```
+
+**Note on shell escaping:** The `<<'EOF'` (single-quoted delimiter) prevents any shell expansion inside the body. This is important because the design document will contain backticks, quotes, dollar signs, and other characters that would otherwise be interpreted by the shell.
+
+3. **Capture the issue number** from the command output (gh prints the issue URL, extract the number from it).
+
+4. **Announce:** "Created issue #N: <title>. Proceeding with development."
+
+5. **Set `issue_number`** to the newly created number and **fall through to Step 1** below. From this point forward, the flow is identical to issue mode.
+
+**Error handling:** If `gh issue create` fails (network error, auth issue, etc.), save the design text to `docs/brainstorm-<slug>.md` as a backup before reporting the error to the user. This ensures the brainstorm work is not lost even if issue creation fails.
 
 ## Step 1: Fetch Issue
 
@@ -271,12 +333,13 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 - Post every review on the PR as a comment
 - Check CI after the review loop converges
 - Ask the user before merging or marking ready
+- In topic mode, create the GitHub issue before proceeding to the normal flow — never skip issue creation
 
 ## Integration
 
 **Skills called (via subagents):**
 - `superpowers:using-git-worktrees` — worktree setup (orchestrator invokes directly)
-- `superpowers:brainstorming` — design exploration (planning subagent)
+- `superpowers:brainstorming` — topic-to-issue brainstorm (topic mode, brainstorming subagent) AND design exploration (planning subagent)
 - `superpowers:writing-plans` — plan creation (planning subagent)
 - `superpowers:subagent-driven-development` — implementation (implementer subagent)
 
