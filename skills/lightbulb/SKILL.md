@@ -137,7 +137,7 @@ git diff $BASE...HEAD
 
 2. Read the plan file for spec context.
 
-3. Dispatch a reviewer subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`) with:
+3. Dispatch a reviewer subagent (Agent tool, `subagent_type: "superpowers:code-reviewer"`, `model: "opus"`) with:
 
 > You are a code reviewer. Review the following implementation for BOTH spec compliance and code quality.
 >
