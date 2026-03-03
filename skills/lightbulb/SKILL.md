@@ -273,6 +273,7 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 - Post review comments without signing "— Claude"
 - Merge without explicit user consent
 - Run more review rounds than the configured max
+- Accept an APPROVED review that has Critical or Important issues — always override to NEEDS_FIXES
 
 **Always:**
 - Relay brainstorming questions to the user — don't answer them yourself
