@@ -158,6 +158,11 @@ git diff $BASE...HEAD
 > - **Important:** Should fix — poor patterns, missing tests, unclear code
 > - **Cosmetic:** Nice to have — style, naming, minor improvements
 >
+> **Status rule — follow strictly:**
+> - If Critical > 0 OR Important > 0 → Status MUST be `NEEDS_FIXES`
+> - If Critical = 0 AND Important = 0 → Status MUST be `APPROVED`
+> - Never approve when Important or Critical issues exist, regardless of their severity relative to the overall quality
+>
 > Return your review in this format:
 >
 > ```
