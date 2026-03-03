@@ -18,23 +18,31 @@ End-to-end autonomous development from a GitHub issue or a topic/idea. When give
 
 ## Input
 
-- `issue_number` (required) — GitHub issue number in the current repo.
+- `issue_number` OR `topic` (one required):
+  - `issue_number` — GitHub issue number in the current repo. Triggers **issue mode**.
+  - `topic` — free-text idea or feature description. Triggers **topic mode**.
 - `max_review_rounds` (optional, default 5) — cap on review-fix loop iterations.
 
-Parse these from the user's message. If the issue number is ambiguous, ask.
+Parse these from the user's message. If the message contains a `#N` reference or bare number referring to a GitHub issue, use issue mode. If it contains a topic/idea description without an issue number, use topic mode. If ambiguous, ask.
 
 ## Flow
 
 ```
-1. Parse input (issue number, optional max rounds)
-2. Fetch issue from GitHub
-3. Set up worktree — REQUIRED SUB-SKILL: superpowers:using-git-worktrees
-4. PLAN — dispatch planning subagent
-5. IMPLEMENT — dispatch implementation subagent
-6. Create draft PR linked to the issue
-7. REVIEW LOOP (up to N rounds)
-8. Check CI pipelines
-9. Ask user: mark PR ready (default) or merge
+IF TOPIC MODE:
+  0a. Parse input (topic text, optional max rounds)
+  0b. BRAINSTORM — dispatch brainstorming subagent with the topic
+  0c. Create GitHub issue from brainstorm output (design doc = issue body)
+  0d. Set issue_number to the newly created issue, fall through to step 1
+
+BOTH MODES (from here on, issue_number is always set):
+  1. Parse/fetch issue from GitHub
+  2. Set up worktree — REQUIRED SUB-SKILL: superpowers:using-git-worktrees
+  3. PLAN — dispatch planning subagent
+  4. IMPLEMENT — dispatch implementation subagent
+  5. Create draft PR linked to the issue
+  6. REVIEW LOOP (up to N rounds)
+  7. Check CI pipelines
+  8. Ask user: mark PR ready (default) or merge
 ```
 
 ## Step 1: Fetch Issue
