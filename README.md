@@ -43,7 +43,7 @@ ln -s ~/around/skills/lightbulb /path/to/project/.claude/skills/lightbulb
 
 ## Dependencies
 
-The lightbulb skill delegates to these superpowers skills (bundled with the [superpowers plugin](https://github.com/anthropics/claude-code) for Claude Code):
+The lightbulb skill delegates to these [superpowers](https://github.com/obra/superpowers) skills:
 
 - `superpowers:using-git-worktrees` -- worktree setup
 - `superpowers:brainstorming` -- design exploration
