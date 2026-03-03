@@ -324,12 +324,13 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 - Post every review on the PR as a comment
 - Check CI after the review loop converges
 - Ask the user before merging or marking ready
+- In topic mode, create the GitHub issue before proceeding to the normal flow — never skip issue creation
 
 ## Integration
 
 **Skills called (via subagents):**
 - `superpowers:using-git-worktrees` — worktree setup (orchestrator invokes directly)
-- `superpowers:brainstorming` — design exploration (planning subagent)
+- `superpowers:brainstorming` — topic-to-issue brainstorm (topic mode, brainstorming subagent) AND design exploration (planning subagent)
 - `superpowers:writing-plans` — plan creation (planning subagent)
 - `superpowers:subagent-driven-development` — implementation (implementer subagent)
 
