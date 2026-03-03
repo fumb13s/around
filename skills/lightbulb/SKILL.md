@@ -1,16 +1,20 @@
 ---
 name: lightbulb
 description: >
-  Use when the user provides a GitHub issue number and wants end-to-end
-  autonomous development — planning, implementation, review, and PR creation —
-  handled by subagents in an isolated worktree.
+  Use when the user provides a GitHub issue number OR a topic/idea and wants
+  end-to-end autonomous development — planning, implementation, review, and PR
+  creation — handled by subagents in an isolated worktree. When given a topic
+  instead of an issue number, brainstorms a design first and files it as a
+  GitHub issue before proceeding.
 ---
 
 # Lightbulb
 
-End-to-end autonomous development from a GitHub issue. Dispatches subagents for each phase: planning, implementation, review, and fix. All work happens in an isolated git worktree. The orchestrator (you) manages phase transitions, relays user interaction, and handles the PR lifecycle.
+End-to-end autonomous development from a GitHub issue or a topic/idea. When given a topic instead of an issue number, brainstorms a design and files it as a GitHub issue first. Then dispatches subagents for each phase: planning, implementation, review, and fix. All work happens in an isolated git worktree. The orchestrator (you) manages phase transitions, relays user interaction, and handles the PR lifecycle.
 
-**Announce at start:** "I'm using the lightbulb skill to develop issue #N end-to-end."
+**Announce at start:**
+- **Issue mode:** "I'm using the lightbulb skill to develop issue #N end-to-end."
+- **Topic mode:** "I'm using the lightbulb skill to brainstorm and develop a new idea end-to-end."
 
 ## Input
 
