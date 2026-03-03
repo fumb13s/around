@@ -47,7 +47,7 @@ The worktree branch name should be derived from the issue: `feature/issue-<numbe
 
 ## Step 3: PLAN Phase
 
-Dispatch a planning subagent (Agent tool, `subagent_type: "general-purpose"`) with this prompt structure:
+Dispatch a planning subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`) with this prompt structure:
 
 > You are a planning agent. Your job is to design and plan the implementation for a GitHub issue.
 >
@@ -78,7 +78,7 @@ git commit -m "docs: add implementation plan for issue #N"
 
 Read the plan file to get the full plan text.
 
-Dispatch an implementation subagent (Agent tool, `subagent_type: "general-purpose"`) with this prompt structure:
+Dispatch an implementation subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`) with this prompt structure:
 
 > You are an implementation agent. Implement the following plan using `superpowers:subagent-driven-development`.
 >
@@ -128,15 +128,16 @@ Track the current round number (starting at 1) and the max rounds (default 5).
 
 **For each round:**
 
-1. Get the full diff:
+1. Get the full diff against the base branch (detect it dynamically — do not hardcode `main`):
 
 ```
-git diff main...HEAD
+BASE=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+git diff $BASE...HEAD
 ```
 
 2. Read the plan file for spec context.
 
-3. Dispatch a reviewer subagent (Agent tool, `subagent_type: "general-purpose"`) with:
+3. Dispatch a reviewer subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`) with:
 
 > You are a code reviewer. Review the following implementation for BOTH spec compliance and code quality.
 >
@@ -188,7 +189,7 @@ gh pr comment <pr-number> --body "<review-content>
 
 5. **If Status is NEEDS_FIXES** (critical or important issues):
 
-   Dispatch a fixer subagent (Agent tool, `subagent_type: "general-purpose"`) with:
+   Dispatch a fixer subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`) with:
 
    > You are a code fixer. Fix the following review issues:
    >
@@ -198,7 +199,7 @@ gh pr comment <pr-number> --body "<review-content>
    >
    > When done, return `FIXES_COMPLETE:` followed by a summary.
 
-   After fixes, increment round counter and loop back to step 1.
+   After fixes, push the changes (`git push`) so the PR stays current, increment round counter, and loop back to step 1.
 
 6. **If Status is APPROVED** (only cosmetic issues remain):
 
@@ -221,7 +222,7 @@ After the review loop converges:
 gh pr checks <pr-number> --watch
 ```
 
-If checks fail, dispatch a fixer subagent with the failure output:
+If checks fail, dispatch a fixer subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`) with the failure output:
 
 > CI pipeline failed. Diagnose and fix:
 >

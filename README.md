@@ -43,7 +43,7 @@ ln -s ~/around/skills/lightbulb /path/to/project/.claude/skills/lightbulb
 
 ## Dependencies
 
-The lightbulb skill delegates to these [superpowers](https://github.com/anthropics/claude-code) skills:
+The lightbulb skill delegates to these superpowers skills (bundled with the [superpowers plugin](https://github.com/anthropics/claude-code) for Claude Code):
 
 - `superpowers:using-git-worktrees` -- worktree setup
 - `superpowers:brainstorming` -- design exploration
@@ -60,8 +60,8 @@ Make sure the superpowers plugin is installed in your Claude Code instance.
 
 Or just tell Claude: "implement issue #42" -- the skill triggers when a GitHub issue number is provided with intent for autonomous development.
 
-Optional: set max review rounds (default 5):
+Optional: set max review rounds (default 5) in natural language:
 
 ```
-/lightbulb 42 --max-rounds 3
+implement issue #42 with at most 3 review rounds
 ```
