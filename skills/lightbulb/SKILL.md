@@ -47,6 +47,8 @@ BOTH MODES (from here on, issue_number is always set):
 
 ## Topic Mode: Step 0b — BRAINSTORM Phase
 
+After parsing the input (Step 0a), if topic mode is active, dispatch a brainstorming subagent.
+
 **This step only runs in topic mode** (when the user provides a topic instead of an issue number).
 
 Dispatch a brainstorming subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`) with this prompt structure:
@@ -74,17 +76,24 @@ Dispatch a brainstorming subagent (Agent tool, `subagent_type: "general-purpose"
 
 1. **Extract a title** from the design document: use the first `# heading` in the design text. If there is no heading, use the first sentence.
 
-2. **Create the issue:**
+2. **Create the issue** using a HEREDOC to safely handle multiline Markdown, quotes, and backticks in the design text:
 
 ```
-gh issue create --title "<extracted-title>" --body "<full-design-text>"
+gh issue create --title "<extracted-title>" --body "$(cat <<'EOF'
+<full-design-text>
+EOF
+)"
 ```
+
+**Note on shell escaping:** The `<<'EOF'` (single-quoted delimiter) prevents any shell expansion inside the body. This is important because the design document will contain backticks, quotes, dollar signs, and other characters that would otherwise be interpreted by the shell.
 
 3. **Capture the issue number** from the command output (gh prints the issue URL, extract the number from it).
 
 4. **Announce:** "Created issue #N: <title>. Proceeding with development."
 
 5. **Set `issue_number`** to the newly created number and **fall through to Step 1** below. From this point forward, the flow is identical to issue mode.
+
+**Error handling:** If `gh issue create` fails (network error, auth issue, etc.), save the design text to `docs/brainstorm-<slug>.md` as a backup before reporting the error to the user. This ensures the brainstorm work is not lost even if issue creation fails.
 
 ## Step 1: Fetch Issue
 
