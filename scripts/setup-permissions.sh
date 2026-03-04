@@ -27,6 +27,8 @@ LIGHTBULB_RULES=(
   'Bash(gh pr checks *)'
   'Bash(gh pr ready *)'
   'Bash(gh pr merge *)'
+  'Edit(*)'
+  'Write(*)'
 )
 
 usage() {
@@ -182,16 +184,14 @@ do_install() {
     # Remove old entries first, then add new ones
     local remove_filter
     remove_filter=$(build_jq_remove_filter)
-    local tmp
-    tmp=$(mktemp)
-    jq "$remove_filter" "$SETTINGS_FILE" > "$tmp" && mv "$tmp" "$SETTINGS_FILE"
+    TMPFILE=$(mktemp)
+    jq "$remove_filter" "$SETTINGS_FILE" > "$TMPFILE" && mv "$TMPFILE" "$SETTINGS_FILE"
   fi
 
   local add_filter
   add_filter=$(build_jq_add_filter)
-  local tmp
-  tmp=$(mktemp)
-  jq "$add_filter" "$SETTINGS_FILE" > "$tmp" && mv "$tmp" "$SETTINGS_FILE"
+  TMPFILE=$(mktemp)
+  jq "$add_filter" "$SETTINGS_FILE" > "$TMPFILE" && mv "$TMPFILE" "$SETTINGS_FILE"
 
   echo "Installed lightbulb permissions (version $SCRIPT_VERSION) in $SETTINGS_FILE"
   echo ""
@@ -210,14 +210,16 @@ do_remove() {
 
   local remove_filter
   remove_filter=$(build_jq_remove_filter)
-  local tmp
-  tmp=$(mktemp)
-  jq "$remove_filter" "$SETTINGS_FILE" > "$tmp" && mv "$tmp" "$SETTINGS_FILE"
+  TMPFILE=$(mktemp)
+  jq "$remove_filter" "$SETTINGS_FILE" > "$TMPFILE" && mv "$TMPFILE" "$SETTINGS_FILE"
 
   echo "Removed lightbulb permissions from $SETTINGS_FILE"
 }
 
 # --- main ---
+
+TMPFILE=""
+trap 'rm -f "$TMPFILE" 2>/dev/null' EXIT
 
 ensure_jq
 ensure_settings_file

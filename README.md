@@ -105,7 +105,9 @@ Add these entries to `permissions.allow` in `~/.claude/settings.json` (global) o
       "Bash(gh pr comment *)",
       "Bash(gh pr checks *)",
       "Bash(gh pr ready *)",
-      "Bash(gh pr merge *)"
+      "Bash(gh pr merge *)",
+      "Edit(*)",
+      "Write(*)"
     ]
   }
 }
