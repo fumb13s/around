@@ -238,10 +238,10 @@ All review rounds passed and CI is green. Ask the user:
 
 > Development complete for issue #N.
 > 1. Mark PR ready for review (Recommended)
-> 2. Merge directly
+> 2. Mark PR ready and merge directly
 
 If mark ready: `gh pr ready <pr-number>`
-If merge: `gh pr merge <pr-number> --squash`
+If merge: `gh pr ready <pr-number>` then `gh pr merge <pr-number> --squash`
 
 ## Error Handling
 
