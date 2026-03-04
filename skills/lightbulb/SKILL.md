@@ -348,6 +348,7 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 - Check CI after the review loop converges
 - Ask the user before merging or marking ready
 - In topic mode, create the GitHub issue before proceeding to the normal flow — never skip issue creation
+- Ensure all orchestrator Bash commands have matching entries in the user's `permissions.allow` — see README for the setup script and manual list
 
 ## Integration
 
