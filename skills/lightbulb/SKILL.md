@@ -51,7 +51,7 @@ After parsing the input (Step 0a), if topic mode is active, dispatch a brainstor
 
 **This step only runs in topic mode** (when the user provides a topic instead of an issue number).
 
-Dispatch a brainstorming subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`) with this prompt structure:
+Dispatch a brainstorming subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`, `permissionMode: "acceptEdits"`) with this prompt structure:
 
 > You are a brainstorming agent. Your job is to explore a topic and produce a design document.
 >
@@ -109,7 +109,7 @@ The worktree branch name should be derived from the issue: `feature/issue-<numbe
 
 ## Step 3: PLAN Phase
 
-Dispatch a planning subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`) with this prompt structure:
+Dispatch a planning subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`, `permissionMode: "acceptEdits"`) with this prompt structure:
 
 > You are a planning agent. Your job is to design and plan the implementation for a GitHub issue.
 >
@@ -140,7 +140,7 @@ git commit -m "docs: add implementation plan for issue #N"
 
 Read the plan file to get the full plan text.
 
-Dispatch an implementation subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`) with this prompt structure:
+Dispatch an implementation subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`, `permissionMode: "acceptEdits"`) with this prompt structure:
 
 > You are an implementation agent. Implement the following plan using `superpowers:subagent-driven-development`.
 >
@@ -199,7 +199,7 @@ git diff $BASE...HEAD
 
 2. Read the plan file for spec context.
 
-3. Dispatch a reviewer subagent (Agent tool, `subagent_type: "superpowers:code-reviewer"`, `model: "opus"`) with:
+3. Dispatch a reviewer subagent (Agent tool, `subagent_type: "superpowers:code-reviewer"`, `model: "opus"`, `permissionMode: "acceptEdits"`) with:
 
 > You are a code reviewer. Review the following implementation for BOTH spec compliance and code quality.
 >
@@ -249,9 +249,12 @@ git diff $BASE...HEAD
 4. Post the review as a PR comment (signed "— Claude"):
 
 ```
-gh pr comment <pr-number> --body "<review-content>
+gh pr comment <pr-number> --body "$(cat <<'EOF'
+<review-content>
 
-— Claude"
+— Claude
+EOF
+)"
 ```
 
 5. **Validate the reviewer's status.** Parse the `Critical:` and `Important:` counts from the `REVIEW_RESULT` block. If either count is greater than 0 but the reviewer returned `Status: APPROVED`, override the status to `NEEDS_FIXES` and log: "Overriding reviewer status: found N critical and M important issues but reviewer returned APPROVED."
@@ -260,7 +263,7 @@ gh pr comment <pr-number> --body "<review-content>
 
 6. **If Status is NEEDS_FIXES** (critical or important issues):
 
-   Dispatch a fixer subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`) with:
+   Dispatch a fixer subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`, `permissionMode: "acceptEdits"`) with:
 
    > You are a code fixer. Fix the following review issues:
    >
@@ -293,7 +296,7 @@ After the review loop converges:
 gh pr checks <pr-number> --watch
 ```
 
-If checks fail, dispatch a fixer subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`) with the failure output:
+If checks fail, dispatch a fixer subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`, `permissionMode: "acceptEdits"`) with the failure output:
 
 > CI pipeline failed. Diagnose and fix:
 >
@@ -340,6 +343,7 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 **Always:**
 - Relay brainstorming questions to the user — don't answer them yourself
 - Commit after each phase (plan, implementation fixes, review fixes, CI fixes)
+- Use simple `git commit -m "message"` — never use HEREDOC/cat patterns for commit messages (they trigger unnecessary confirmation prompts)
 - Post every review on the PR as a comment
 - Check CI after the review loop converges
 - Ask the user before merging or marking ready
