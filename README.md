@@ -52,6 +52,67 @@ The lightbulb skill delegates to these [superpowers](https://github.com/obra/sup
 
 Make sure the superpowers plugin is installed in your Claude Code instance.
 
+## Permissions
+
+The lightbulb skill's orchestrator runs shell commands (`git`, `gh`) that require Claude Code permission approval. Without pre-approved permissions, each command triggers an interactive prompt.
+
+### Quick setup (recommended)
+
+Run the setup script to automatically add the required permissions to your global Claude Code settings:
+
+```bash
+~/around/scripts/setup-permissions.sh
+```
+
+Or for a specific project only:
+
+```bash
+~/around/scripts/setup-permissions.sh --project
+```
+
+Other commands:
+
+```bash
+# Check current permission status
+~/around/scripts/setup-permissions.sh --check
+
+# Remove lightbulb permissions
+~/around/scripts/setup-permissions.sh --remove
+```
+
+### Manual setup
+
+Add these entries to `permissions.allow` in `~/.claude/settings.json` (global) or `.claude/settings.json` (per-project):
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh issue view *)",
+      "Bash(gh issue create *)",
+      "Bash(gh label create *)",
+      "Bash(git check-ignore *)",
+      "Bash(git worktree add *)",
+      "Bash(cd *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git diff *)",
+      "Bash(git symbolic-ref *)",
+      "Bash(BASE=$(git symbolic-ref *)",
+      "Bash(echo *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr comment *)",
+      "Bash(gh pr checks *)",
+      "Bash(gh pr ready *)",
+      "Bash(gh pr merge *)"
+    ]
+  }
+}
+```
+
+These patterns cover all commands the lightbulb orchestrator and its worktree setup phase execute. They use specific command prefixes rather than broad wildcards to limit the scope of auto-approval.
+
 ## Usage
 
 ```
