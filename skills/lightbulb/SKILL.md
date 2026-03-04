@@ -314,8 +314,9 @@ All review rounds passed and CI is green. Ask the user:
 > 1. Mark PR ready for review (Recommended)
 > 2. Mark PR ready and merge directly
 
-If mark ready: `gh pr ready <pr-number>`
-If merge: `gh pr ready <pr-number>` then `gh pr merge <pr-number> --squash`
+**Option 1:** Run `gh pr ready <pr-number>` — marks the draft PR as ready for human review.
+
+**Option 2:** Run `gh pr ready <pr-number>` then `gh pr merge <pr-number> --squash` — marks the PR ready and immediately merges it. Do NOT run merge a second time; the single `gh pr merge` command here is the only merge.
 
 ## Error Handling
 
