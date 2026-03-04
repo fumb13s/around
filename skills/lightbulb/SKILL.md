@@ -340,6 +340,7 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 **Always:**
 - Relay brainstorming questions to the user — don't answer them yourself
 - Commit after each phase (plan, implementation fixes, review fixes, CI fixes)
+- Use simple `git commit -m "message"` — never use HEREDOC/cat patterns for commit messages (they trigger unnecessary confirmation prompts)
 - Post every review on the PR as a comment
 - Check CI after the review loop converges
 - Ask the user before merging or marking ready
