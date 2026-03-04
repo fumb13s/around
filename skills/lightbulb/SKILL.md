@@ -249,9 +249,12 @@ git diff $BASE...HEAD
 4. Post the review as a PR comment (signed "— Claude"):
 
 ```
-gh pr comment <pr-number> --body "<review-content>
+gh pr comment <pr-number> --body "$(cat <<'EOF'
+<review-content>
 
-— Claude"
+— Claude
+EOF
+)"
 ```
 
 5. **Validate the reviewer's status.** Parse the `Critical:` and `Important:` counts from the `REVIEW_RESULT` block. If either count is greater than 0 but the reviewer returned `Status: APPROVED`, override the status to `NEEDS_FIXES` and log: "Overriding reviewer status: found N critical and M important issues but reviewer returned APPROVED."
