@@ -220,6 +220,11 @@ git diff $BASE...HEAD
 > - **Important:** Should fix — poor patterns, missing tests, unclear code
 > - **Cosmetic:** Nice to have — style, naming, minor improvements
 >
+> **Status rule — follow strictly:**
+> - If Critical > 0 OR Important > 0 → Status MUST be `NEEDS_FIXES`
+> - If Critical = 0 AND Important = 0 → Status MUST be `APPROVED`
+> - Never approve when Important or Critical issues exist, regardless of their severity relative to the overall quality
+>
 > Return your review in this format:
 >
 > ```
@@ -249,7 +254,11 @@ gh pr comment <pr-number> --body "<review-content>
 — Claude"
 ```
 
-5. **If Status is NEEDS_FIXES** (critical or important issues):
+5. **Validate the reviewer's status.** Parse the `Critical:` and `Important:` counts from the `REVIEW_RESULT` block. If either count is greater than 0 but the reviewer returned `Status: APPROVED`, override the status to `NEEDS_FIXES` and log: "Overriding reviewer status: found N critical and M important issues but reviewer returned APPROVED."
+
+   This is a safety net — the reviewer prompt's status rule should already produce the correct status, but the orchestrator enforces the rule independently.
+
+6. **If Status is NEEDS_FIXES** (critical or important issues):
 
    Dispatch a fixer subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`) with:
 
@@ -263,7 +272,7 @@ gh pr comment <pr-number> --body "<review-content>
 
    After fixes, push the changes (`git push`) so the PR stays current, increment round counter, and loop back to step 1.
 
-6. **If Status is APPROVED** (only cosmetic issues remain):
+7. **If Status is APPROVED** (only cosmetic issues remain):
 
    If cosmetic issues exist and rounds remain, ask the user:
 
@@ -274,7 +283,7 @@ gh pr comment <pr-number> --body "<review-content>
    If yes: dispatch fixer with cosmetic issues, increment round, re-review.
    If no: exit loop.
 
-7. **If max rounds reached:** Post remaining issues as a PR comment and exit loop.
+8. **If max rounds reached:** Post remaining issues as a PR comment and exit loop.
 
 ## Step 7: CI Check
 
@@ -326,6 +335,7 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 - Post review comments without signing "— Claude"
 - Merge without explicit user consent
 - Run more review rounds than the configured max
+- Accept an APPROVED review that has Critical or Important issues — always override to NEEDS_FIXES
 
 **Always:**
 - Relay brainstorming questions to the user — don't answer them yourself
