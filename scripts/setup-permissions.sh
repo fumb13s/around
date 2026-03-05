@@ -5,7 +5,7 @@ set -euo pipefail
 # Patches Claude Code settings with permission entries required by the
 # lightbulb orchestrator so its shell commands don't trigger prompts.
 
-SCRIPT_VERSION="1"
+SCRIPT_VERSION="2"
 VERSION_KEY="_lightbulb_permissions_version"
 
 LIGHTBULB_RULES=(
@@ -29,6 +29,14 @@ LIGHTBULB_RULES=(
   'Bash(gh pr merge *)'
   'Edit(*)'
   'Write(*)'
+  'Bash(chmod *)'
+  'Bash(bash *)'
+  'Bash(grep *)'
+  'Bash(sed *)'
+  'Bash(jq *)'
+  'Bash(which *)'
+  'Bash(find *)'
+  'Bash(export *)'
 )
 
 usage() {
