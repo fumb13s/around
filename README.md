@@ -107,7 +107,15 @@ Add these entries to `permissions.allow` in `~/.claude/settings.json` (global) o
       "Bash(gh pr ready *)",
       "Bash(gh pr merge *)",
       "Edit(*)",
-      "Write(*)"
+      "Write(*)",
+      "Bash(chmod *)",
+      "Bash(bash *)",
+      "Bash(grep *)",
+      "Bash(sed *)",
+      "Bash(jq *)",
+      "Bash(which *)",
+      "Bash(find *)",
+      "Bash(export *)"
     ]
   }
 }
