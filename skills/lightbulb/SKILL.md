@@ -363,6 +363,8 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 - Merge without explicit user consent
 - Run more review rounds than the configured max
 - Accept an APPROVED review that has Critical or Important issues — always override to NEEDS_FIXES
+- Act on observations about other issues, PRs, or repository state that are outside the target issue's flow -- even if they seem helpful (e.g., closing duplicates, triaging, commenting on other PRs)
+- Run commands not defined in the skill flow (e.g., `gh issue close`, `gh issue edit`, `gh pr close` are never part of the lightbulb flow)
 
 **Always:**
 - Relay brainstorming questions to the user — don't answer them yourself
