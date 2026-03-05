@@ -25,6 +25,17 @@ End-to-end autonomous development from a GitHub issue or a topic/idea. When give
 
 Parse these from the user's message. If the message contains a `#N` reference or bare number referring to a GitHub issue, use issue mode. If it contains a topic/idea description without an issue number, use topic mode. If ambiguous, ask.
 
+## Scope
+
+**All actions must serve the target issue.** The orchestrator and its subagents must only perform actions that are part of the defined flow for the issue they were invoked with. Specifically:
+
+- **Do not** act on observations about other issues, PRs, labels, or repository state that are not directly required by the target issue's flow.
+- **Do not** close, comment on, triage, or modify other issues -- even if they appear to be duplicates, related, or stale.
+- **Do not** modify files, branches, or PRs that are not part of the current worktree and development flow.
+- **Do** stay strictly within the steps defined in the Flow section below. If you notice something outside the target issue that seems worth doing, ignore it -- the user can handle it separately.
+
+If the target issue's body explicitly references another issue as a dependency or prerequisite (e.g., "this depends on #5 being merged first"), you may read that issue for context but must not modify it.
+
 ## Flow
 
 ```
