@@ -76,6 +76,8 @@ Dispatch a brainstorming subagent (Agent tool, `subagent_type: "general-purpose"
 > - When the design is complete, return a message starting with `DESIGN_COMPLETE:` followed by the full design document text.
 >
 > When you need user input, return a message starting with `USER_INPUT_NEEDED:` followed by the question.
+>
+> **Scope:** Stay focused on the topic provided. Do not act on observations about other issues, PRs, or unrelated repository state.
 
 **Relay pattern:** Same as the planning phase — relay `USER_INPUT_NEEDED:` to the user via `AskUserQuestion`, resume subagent with answers.
 
@@ -137,6 +139,8 @@ Dispatch a planning subagent (Agent tool, `subagent_type: "general-purpose"`, `m
 > When you need user input, return a message starting with `USER_INPUT_NEEDED:` followed by the question.
 >
 > When the plan is complete, return a message starting with `PLAN_COMPLETE:` followed by the plan file path.
+>
+> **Scope:** Stay focused on issue #{N}. Do not act on observations about other issues, PRs, or unrelated repository state.
 
 **Relay pattern:** When the planning subagent returns `USER_INPUT_NEEDED:`, use `AskUserQuestion` to relay the question to the user, then resume the subagent (Agent tool with `resume` parameter) with the user's answer.
 
@@ -166,6 +170,8 @@ Dispatch an implementation subagent (Agent tool, `subagent_type: "general-purpos
 > When you need clarification, return a message starting with `USER_INPUT_NEEDED:` followed by the question.
 >
 > When implementation is complete, return a message starting with `IMPLEMENTATION_COMPLETE:` followed by a summary of what was implemented.
+>
+> **Scope:** Implement only what the plan specifies. Do not act on observations about other issues, PRs, or unrelated repository state.
 
 **Relay pattern:** Same as planning — relay `USER_INPUT_NEEDED:` to the user, resume with answers.
 
@@ -256,6 +262,8 @@ git diff $BASE...HEAD
 > ## Strengths
 > - ...
 > ```
+>
+> **Scope:** Review only the diff provided. Do not comment on or act on other issues, PRs, or unrelated repository state.
 
 4. Post the review as a PR comment (signed "— Claude"):
 
@@ -283,6 +291,8 @@ EOF
    > Fix each issue, run tests to verify, and commit your changes.
    >
    > When done, return `FIXES_COMPLETE:` followed by a summary.
+   >
+   > **Scope:** Fix only the listed issues. Do not act on observations about other issues, PRs, or unrelated repository state.
 
    After fixes, push the changes (`git push`) so the PR stays current, increment round counter, and loop back to step 1.
 
@@ -314,6 +324,8 @@ If checks fail, dispatch a fixer subagent (Agent tool, `subagent_type: "general-
 > {FAILURE_OUTPUT}
 >
 > Fix the issue, run tests locally to verify, and commit.
+>
+> **Scope:** Fix only the CI failure. Do not act on observations about other issues, PRs, or unrelated repository state.
 
 Re-check after fixes. If CI still fails after 2 fix attempts, report to user and stop.
 
