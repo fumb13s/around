@@ -25,6 +25,17 @@ End-to-end autonomous development from a GitHub issue or a topic/idea. When give
 
 Parse these from the user's message. If the message contains a `#N` reference or bare number referring to a GitHub issue, use issue mode. If it contains a topic/idea description without an issue number, use topic mode. If ambiguous, ask.
 
+## Scope
+
+**All actions must serve the target issue.** The orchestrator and its subagents must only perform actions that are part of the defined flow for the issue they were invoked with. Specifically:
+
+- **Do not** act on observations about other issues, PRs, labels, or repository state that are not directly required by the target issue's flow.
+- **Do not** close, comment on, triage, or modify other issues -- even if they appear to be duplicates, related, or stale.
+- **Do not** modify files, branches, or PRs that are not part of the current worktree and development flow.
+- **Do** stay strictly within the steps defined in the Flow section below. If you notice something outside the target issue that seems worth doing, ignore it -- the user can handle it separately.
+
+If the target issue's body explicitly references another issue as a dependency or prerequisite (e.g., "this depends on #5 being merged first"), you may read that issue for context but must not modify it.
+
 ## Flow
 
 ```
@@ -65,6 +76,8 @@ Dispatch a brainstorming subagent (Agent tool, `subagent_type: "general-purpose"
 > - When the design is complete, return a message starting with `DESIGN_COMPLETE:` followed by the full design document text.
 >
 > When you need user input, return a message starting with `USER_INPUT_NEEDED:` followed by the question.
+>
+> **Scope:** Stay focused on the topic provided. Do not act on observations about other issues, PRs, or unrelated repository state.
 
 **Relay pattern:** Same as the planning phase — relay `USER_INPUT_NEEDED:` to the user via `AskUserQuestion`, resume subagent with answers.
 
@@ -126,6 +139,8 @@ Dispatch a planning subagent (Agent tool, `subagent_type: "general-purpose"`, `m
 > When you need user input, return a message starting with `USER_INPUT_NEEDED:` followed by the question.
 >
 > When the plan is complete, return a message starting with `PLAN_COMPLETE:` followed by the plan file path.
+>
+> **Scope:** Stay focused on issue #{N}. Do not act on observations about other issues, PRs, or unrelated repository state.
 
 **Relay pattern:** When the planning subagent returns `USER_INPUT_NEEDED:`, use `AskUserQuestion` to relay the question to the user, then resume the subagent (Agent tool with `resume` parameter) with the user's answer.
 
@@ -155,6 +170,8 @@ Dispatch an implementation subagent (Agent tool, `subagent_type: "general-purpos
 > When you need clarification, return a message starting with `USER_INPUT_NEEDED:` followed by the question.
 >
 > When implementation is complete, return a message starting with `IMPLEMENTATION_COMPLETE:` followed by a summary of what was implemented.
+>
+> **Scope:** Implement only what the plan specifies. Do not act on observations about other issues, PRs, or unrelated repository state.
 
 **Relay pattern:** Same as planning — relay `USER_INPUT_NEEDED:` to the user, resume with answers.
 
@@ -245,6 +262,8 @@ git diff $BASE...HEAD
 > ## Strengths
 > - ...
 > ```
+>
+> **Scope:** Review only the diff provided. Do not comment on or act on other issues, PRs, or unrelated repository state.
 
 4. Post the review as a PR comment (signed "— Claude"):
 
@@ -272,6 +291,8 @@ EOF
    > Fix each issue, run tests to verify, and commit your changes.
    >
    > When done, return `FIXES_COMPLETE:` followed by a summary.
+   >
+   > **Scope:** Fix only the listed issues. Do not act on observations about other issues, PRs, or unrelated repository state.
 
    After fixes, push the changes (`git push`) so the PR stays current, increment round counter, and loop back to step 1.
 
@@ -303,6 +324,8 @@ If checks fail, dispatch a fixer subagent (Agent tool, `subagent_type: "general-
 > {FAILURE_OUTPUT}
 >
 > Fix the issue, run tests locally to verify, and commit.
+>
+> **Scope:** Fix only the CI failure. Do not act on observations about other issues, PRs, or unrelated repository state.
 
 Re-check after fixes. If CI still fails after 2 fix attempts, report to user and stop.
 
@@ -340,6 +363,8 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 - Merge without explicit user consent
 - Run more review rounds than the configured max
 - Accept an APPROVED review that has Critical or Important issues — always override to NEEDS_FIXES
+- Act on observations about other issues, PRs, or repository state that are outside the target issue's flow -- even if they seem helpful (e.g., closing duplicates, triaging, commenting on other PRs)
+- Run commands not defined in the skill flow (e.g., `gh issue close`, `gh issue edit`, `gh pr close` are never part of the lightbulb flow)
 
 **Always:**
 - Relay brainstorming questions to the user — don't answer them yourself
