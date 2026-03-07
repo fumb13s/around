@@ -106,7 +106,7 @@ EOF
 
 5. **Set `issue_number`** to the newly created number and **fall through to Step 1** below. From this point forward, the flow is identical to issue mode.
 
-**Error handling:** If `gh issue create` fails (network error, auth issue, etc.), save the design text to `docs/brainstorm-<slug>.md` as a backup before reporting the error to the user. This ensures the brainstorm work is not lost even if issue creation fails.
+**Error handling:** If `gh issue create` fails (network error, auth issue, etc.), save the design text to `docs/plans/brainstorm-<slug>.md` as a backup before reporting the error to the user. This ensures the brainstorm work is not lost even if issue creation fails.
 
 ## Step 1: Fetch Issue
 
@@ -132,7 +132,7 @@ Dispatch a planning subagent (Agent tool, `subagent_type: "general-purpose"`, `m
 >
 > Use `superpowers:brainstorming` to explore the codebase, understand the problem, and design a solution. When brainstorming needs user input (clarifying questions, design choices), return them to me — I will relay to the user and resume you with answers.
 >
-> After brainstorming is complete, use `superpowers:writing-plans` to write a detailed implementation plan to `docs/YYYY-MM-DD-<topic>.md`.
+> After brainstorming is complete, use `superpowers:writing-plans` to write a detailed implementation plan to `docs/plans/YYYY-MM-DD-<topic>.md`.
 >
 > Do NOT proceed to implementation. Do NOT invoke finishing-a-development-branch. Your job ends when the plan file is written.
 >
@@ -147,7 +147,7 @@ Dispatch a planning subagent (Agent tool, `subagent_type: "general-purpose"`, `m
 **When PLAN_COMPLETE:** Read the plan file, commit it, and proceed to Step 4.
 
 ```
-git add docs/*.md
+git add docs/plans/*.md
 git commit -m "docs: add implementation plan for issue #N"
 ```
 
