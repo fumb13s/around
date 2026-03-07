@@ -10,6 +10,16 @@ End-to-end autonomous development from a GitHub issue. Takes an issue number and
 
 **Flow:** fetch issue -> brainstorm design -> write plan -> implement (via SDD) -> create draft PR -> review loop -> CI check -> mark ready or merge
 
+## What to expect
+
+When you run `/lightbulb 42`, the skill will:
+
+1. Fetch the issue and create an isolated git worktree
+2. Brainstorm a design and write an implementation plan
+3. Implement the plan via subagents
+4. Open a draft PR and run review rounds
+5. Check CI and ask you how to finish (mark ready or merge)
+
 ## Installation
 
 ### Symlink (recommended)
