@@ -6,9 +6,19 @@ Custom [Claude Code](https://claude.com/claude-code) skills.
 
 ### lightbulb
 
-End-to-end autonomous development from a GitHub issue. Takes an issue number and drives the full workflow: planning, implementation, code review, and PR creation -- all via subagents in an isolated git worktree.
+End-to-end autonomous development from a GitHub issue or a topic/idea. Takes an issue number -- or a plain-text idea that it brainstorms into an issue automatically -- and drives the full workflow: planning, implementation, code review, and PR creation, all via subagents in an isolated git worktree.
 
 **Flow:** fetch issue -> brainstorm design -> write plan -> implement (via SDD) -> create draft PR -> review loop -> CI check -> mark ready or merge
+
+## What to expect
+
+When you run `/lightbulb 42`, the skill will:
+
+1. Fetch the issue and create an isolated git worktree
+2. Brainstorm a design and write an implementation plan
+3. Implement the plan via subagents
+4. Open a draft PR and run review rounds
+5. Check CI and ask you how to finish (mark ready or merge)
 
 ## Installation
 
@@ -125,13 +135,29 @@ These patterns cover all commands the lightbulb orchestrator and its worktree se
 
 ## Usage
 
+### Issue mode
+
+Provide a GitHub issue number to develop an existing issue end-to-end:
+
 ```
 /lightbulb 42
 ```
 
 Or just tell Claude: "implement issue #42" -- the skill triggers when a GitHub issue number is provided with intent for autonomous development.
 
-Optional: set max review rounds (default 5) in natural language:
+### Topic mode
+
+Provide a topic or idea instead of an issue number. The skill will brainstorm a design, file it as a GitHub issue, and then develop it end-to-end:
+
+```
+/lightbulb add a changelog that auto-generates from PR titles
+```
+
+Or in natural language: "build a retry mechanism for flaky API calls" -- the skill detects that no issue number was given and enters topic mode automatically.
+
+### Options
+
+Set max review rounds (default 5) in natural language:
 
 ```
 implement issue #42 with at most 3 review rounds
