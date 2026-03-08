@@ -375,6 +375,7 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 - Accept an APPROVED review that has Critical or Important issues — always override to NEEDS_FIXES
 - Act on observations about other issues, PRs, or repository state that are outside the target issue's flow -- even if they seem helpful (e.g., closing duplicates, triaging, commenting on other PRs)
 - Run commands not defined in the skill flow (e.g., `gh issue close`, `gh issue edit`, `gh pr close` are never part of the lightbulb flow)
+- Work in a worktree or commit to a branch that belongs to a different issue -- if your worktree is inaccessible or the branch name doesn't match your issue number, report the error and stop
 
 **Always:**
 - Relay brainstorming questions to the user — don't answer them yourself
@@ -385,6 +386,7 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 - Ask the user before merging or marking ready
 - In topic mode, create the GitHub issue before proceeding to the normal flow — never skip issue creation
 - Ensure all orchestrator Bash commands have matching entries in the user's `permissions.allow` — see README for the setup script and manual list
+- Verify after worktree setup that the current branch name contains your issue number -- never proceed if it doesn't match
 
 ## Integration
 
