@@ -120,6 +120,16 @@ If the issue doesn't exist or is closed, tell the user and stop.
 
 The worktree branch name should be derived from the issue: `feature/issue-<number>-<slug>` where `<slug>` is a short kebab-case summary of the issue title.
 
+**After worktree setup, verify ownership:**
+
+```bash
+# Verify the current branch contains this issue's number
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+echo "$CURRENT_BRANCH" | grep -q "issue-<number>" || echo "BRANCH_MISMATCH"
+```
+
+If the branch name does not contain `issue-<number>` (where `<number>` is your target issue number), **stop immediately** and report the error to the user. Do not proceed to Step 3. This prevents piggybacking on another agent's worktree when parallel agents are running.
+
 ## Step 3: PLAN Phase
 
 Dispatch a planning subagent (Agent tool, `subagent_type: "general-purpose"`, `model: "opus"`, `permissionMode: "acceptEdits"`) with this prompt structure:
