@@ -165,8 +165,8 @@ Dispatch a planning subagent (Agent tool, `subagent_type: "general-purpose"`, `m
 **When PLAN_COMPLETE:** Read the plan file, commit it, and proceed to Step 4.
 
 ```
-git add docs/plans/*.md
-git commit -m "docs: add implementation plan for issue #N"
+git -C "$WORKTREE_PATH" add docs/plans/*.md
+git -C "$WORKTREE_PATH" commit -m "docs: add implementation plan for issue #N"
 ```
 
 ## Step 4: IMPLEMENT Phase
