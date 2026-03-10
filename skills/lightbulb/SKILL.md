@@ -395,6 +395,7 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 - In topic mode, create the GitHub issue before proceeding to the normal flow — never skip issue creation
 - Ensure all orchestrator Bash commands have matching entries in the user's `permissions.allow` — see README for the setup script and manual list
 - Verify after worktree setup that the current branch name contains your issue number -- never proceed if it doesn't match
+- Use `git -C "$WORKTREE_PATH"` for all orchestrator git commands targeting the worktree -- never use `cd <path> && git <command>` chains, as they trigger Claude Code's bare repository security prompts
 
 ## Integration
 
