@@ -200,7 +200,7 @@ Dispatch an implementation subagent (Agent tool, `subagent_type: "general-purpos
 Push the worktree branch and create a draft PR:
 
 ```
-git push -u origin <branch-name>
+git -C "$WORKTREE_PATH" push -u origin <branch-name>
 gh pr create --draft --title "<issue-title>" --body "$(cat <<'EOF'
 ## Summary
 
