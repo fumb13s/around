@@ -228,8 +228,8 @@ Track the current round number (starting at 1) and the max rounds (default 5).
 1. Get the full diff against the base branch (detect it dynamically — do not hardcode `main`):
 
 ```
-BASE=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
-git diff $BASE...HEAD
+BASE=$(git -C "$WORKTREE_PATH" symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+git -C "$WORKTREE_PATH" diff $BASE...HEAD
 ```
 
 2. Read the plan file for spec context.
@@ -312,7 +312,7 @@ EOF
    >
    > **Scope:** Fix only the listed issues. Do not act on observations about other issues, PRs, or unrelated repository state.
 
-   After fixes, push the changes (`git push`) so the PR stays current, increment round counter, and loop back to step 1.
+   After fixes, push the changes (`git -C "$WORKTREE_PATH" push`) so the PR stays current, increment round counter, and loop back to step 1.
 
 7. **If Status is APPROVED** (only cosmetic issues remain):
 
