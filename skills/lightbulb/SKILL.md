@@ -120,11 +120,19 @@ If the issue doesn't exist or is closed, tell the user and stop.
 
 The worktree branch name should be derived from the issue: `feature/issue-<number>-<slug>` where `<slug>` is a short kebab-case summary of the issue title.
 
-**After worktree setup, verify ownership:**
+**After worktree setup, store the worktree path and verify ownership:**
+
+The `superpowers:using-git-worktrees` skill outputs the worktree path. Store it in a variable for all subsequent git operations:
+
+```
+WORKTREE_PATH="<path returned by using-git-worktrees>"
+```
+
+Use `git -C "$WORKTREE_PATH"` for **all** git commands that target the worktree. This avoids `cd <path> && git <command>` chains that trigger Claude Code's bare repository security prompts.
 
 ```bash
 # Verify the current branch contains this issue's number
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+CURRENT_BRANCH=$(git -C "$WORKTREE_PATH" rev-parse --abbrev-ref HEAD)
 echo "$CURRENT_BRANCH" | grep -q "issue-<number>" || echo "BRANCH_MISMATCH"
 ```
 
