@@ -201,7 +201,7 @@ Push the worktree branch and create a draft PR:
 
 ```
 git -C "$WORKTREE_PATH" push -u origin <branch-name>
-gh pr create --draft --title "<issue-title>" --body "$(cat <<'EOF'
+gh pr create --draft --head <branch-name> --title "<issue-title>" --body "$(cat <<'EOF'
 ## Summary
 
 <2-3 bullets summarizing the implementation>
