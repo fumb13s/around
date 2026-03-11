@@ -120,11 +120,19 @@ If the issue doesn't exist or is closed, tell the user and stop.
 
 The worktree branch name should be derived from the issue: `feature/issue-<number>-<slug>` where `<slug>` is a short kebab-case summary of the issue title.
 
-**After worktree setup, verify ownership:**
+**After worktree setup, store the worktree path and verify ownership:**
+
+The `superpowers:using-git-worktrees` skill outputs the worktree path. Store it in a variable for all subsequent git operations:
+
+```
+WORKTREE_PATH="<path returned by using-git-worktrees>"
+```
+
+Use `git -C "$WORKTREE_PATH"` for **all** git commands that target the worktree. This avoids `cd <path> && git <command>` chains that trigger Claude Code's bare repository security prompts.
 
 ```bash
 # Verify the current branch contains this issue's number
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+CURRENT_BRANCH=$(git -C "$WORKTREE_PATH" rev-parse --abbrev-ref HEAD)
 echo "$CURRENT_BRANCH" | grep -q "issue-<number>" || echo "BRANCH_MISMATCH"
 ```
 
@@ -157,8 +165,8 @@ Dispatch a planning subagent (Agent tool, `subagent_type: "general-purpose"`, `m
 **When PLAN_COMPLETE:** Read the plan file, commit it, and proceed to Step 4.
 
 ```
-git add docs/plans/*.md
-git commit -m "docs: add implementation plan for issue #N"
+git -C "$WORKTREE_PATH" add docs/plans/*.md
+git -C "$WORKTREE_PATH" commit -m "docs: add implementation plan for issue #N"
 ```
 
 ## Step 4: IMPLEMENT Phase
@@ -192,8 +200,8 @@ Dispatch an implementation subagent (Agent tool, `subagent_type: "general-purpos
 Push the worktree branch and create a draft PR:
 
 ```
-git push -u origin <branch-name>
-gh pr create --draft --title "<issue-title>" --body "$(cat <<'EOF'
+git -C "$WORKTREE_PATH" push -u origin <branch-name>
+gh pr create --draft --head <branch-name> --title "<issue-title>" --body "$(cat <<'EOF'
 ## Summary
 
 <2-3 bullets summarizing the implementation>
@@ -220,8 +228,8 @@ Track the current round number (starting at 1) and the max rounds (default 5).
 1. Get the full diff against the base branch (detect it dynamically — do not hardcode `main`):
 
 ```
-BASE=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
-git diff $BASE...HEAD
+BASE=$(git -C "$WORKTREE_PATH" symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+git -C "$WORKTREE_PATH" diff $BASE...HEAD
 ```
 
 2. Read the plan file for spec context.
@@ -304,7 +312,7 @@ EOF
    >
    > **Scope:** Fix only the listed issues. Do not act on observations about other issues, PRs, or unrelated repository state.
 
-   After fixes, push the changes (`git push`) so the PR stays current, increment round counter, and loop back to step 1.
+   After fixes, push the changes (`git -C "$WORKTREE_PATH" push`) so the PR stays current, increment round counter, and loop back to step 1.
 
 7. **If Status is APPROVED** (only cosmetic issues remain):
 
@@ -387,6 +395,7 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 - In topic mode, create the GitHub issue before proceeding to the normal flow — never skip issue creation
 - Ensure all orchestrator Bash commands have matching entries in the user's `permissions.allow` — see README for the setup script and manual list
 - Verify after worktree setup that the current branch name contains your issue number -- never proceed if it doesn't match
+- Use `git -C "$WORKTREE_PATH"` for all orchestrator git commands targeting the worktree -- never use `cd <path> && git <command>` chains, as they trigger Claude Code's bare repository security prompts
 
 ## Integration
 
