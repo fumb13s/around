@@ -248,11 +248,10 @@ Track the current round number (starting at 1) and the max rounds (default 5).
 
 **For each round:**
 
-1. Get the full diff against the base branch (detect it dynamically — do not hardcode `main`):
+1. Get the full diff for the PR:
 
 ```
-BASE=$(git -C "$WORKTREE_PATH" symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
-git -C "$WORKTREE_PATH" diff $BASE...HEAD
+gh pr diff <pr-number>
 ```
 
 2. Read the plan file for spec context.
