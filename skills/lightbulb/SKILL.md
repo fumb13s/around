@@ -56,9 +56,30 @@ BOTH MODES (from here on, issue_number is always set):
   8. Ask user: mark PR ready (default) or merge
 ```
 
+## Orchestrator Bash Commands (No-Chain Rule)
+
+**Every orchestrator Bash command must be its own separate Bash tool call. Never chain commands with `&&`.**
+
+Compounding commands in a single shell invocation makes results harder to inspect, can trigger Claude Code security prompts, and risks running a second command when the first succeeded in a way you didn't expect (or didn't inspect). This applies to **all** orchestrator commands — git, gh, and everything else.
+
+**Correct** — separate Bash tool calls:
+```bash
+gh pr ready 42
+```
+```bash
+gh pr merge 42 --squash
+```
+
+**Wrong — NEVER do this:**
+```bash
+gh pr ready 42 && gh pr merge 42 --squash
+```
+
+**Subagents are exempt:** Subagents dispatched via the Agent tool run in their own context. This rule applies only to commands the orchestrator itself executes via the Bash tool.
+
 ## Git Commands (Worktree Convention)
 
-**All orchestrator git commands that target the worktree MUST use `git -C "$WORKTREE_PATH"`.**
+In addition to the general no-chains rule above, **all orchestrator git commands that target the worktree MUST use `git -C "$WORKTREE_PATH"`.**
 
 The orchestrator stores the worktree path in `WORKTREE_PATH` after Step 2 creates it. Every git command from Step 3 onward must use the `-C` flag to target that path. This is the single most important convention in this skill for avoiding Claude Code security prompts.
 
@@ -377,9 +398,19 @@ All review rounds passed and CI is green. Ask the user:
 > 1. Mark PR ready for review (Recommended)
 > 2. Mark PR ready and merge directly
 
-**Option 1:** Run `gh pr ready <pr-number>` — marks the draft PR as ready for human review.
+**Option 1:** Run a single command:
+```bash
+gh pr ready <pr-number>
+```
 
-**Option 2:** Run `gh pr ready <pr-number>` then `gh pr merge <pr-number> --squash` — marks the PR ready and immediately merges it. Do NOT run merge a second time; the single `gh pr merge` command here is the only merge.
+**Option 2:** Run two **separate** Bash tool calls (never chain these with `&&`):
+```bash
+gh pr ready <pr-number>
+```
+```bash
+gh pr merge <pr-number> --squash
+```
+Do NOT run merge a second time; the single `gh pr merge` command here is the only merge.
 
 ## Error Handling
 
@@ -406,6 +437,7 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 - Act on observations about other issues, PRs, or repository state that are outside the target issue's flow -- even if they seem helpful (e.g., closing duplicates, triaging, commenting on other PRs)
 - Run commands not defined in the skill flow (e.g., `gh issue close`, `gh issue edit`, `gh pr close` are never part of the lightbulb flow)
 - Work in a worktree or commit to a branch that belongs to a different issue -- if your worktree is inaccessible or the branch name doesn't match your issue number, report the error and stop
+- Chain Bash commands with `&&` — run each command as a separate Bash tool call (see **Orchestrator Bash Commands** section)
 - Use `cd` to change into a worktree directory -- not in a `cd && git` chain, not as a standalone `cd` before git commands, not ever. Use `git -C "$WORKTREE_PATH"` instead (see **Git Commands (Worktree Convention)** section)
 
 **Always:**
@@ -418,6 +450,7 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 - In topic mode, create the GitHub issue before proceeding to the normal flow — never skip issue creation
 - Ensure all orchestrator Bash commands have matching entries in the user's `permissions.allow` — see README for the setup script and manual list
 - Verify after worktree setup that the current branch name contains your issue number -- never proceed if it doesn't match
+- Run each orchestrator Bash command as a separate Bash tool call — never chain with `&&` (see **Orchestrator Bash Commands** section)
 - Use `git -C "$WORKTREE_PATH"` for all orchestrator git commands targeting the worktree (see **Git Commands (Worktree Convention)** section)
 
 ## Integration
