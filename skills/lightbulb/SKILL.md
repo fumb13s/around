@@ -98,7 +98,7 @@ cd "$WORKTREE_PATH" && git commit -m "docs: add plan"
 
 The `cd && git` pattern triggers Claude Code's bare repository security prompts. The `git -C` flag runs git against a different directory without changing the shell's CWD, which avoids the prompt entirely.
 
-**Subagents are exempt:** Subagents dispatched via the Agent tool run in the worktree directory context automatically. They use plain `git add`, `git commit`, etc. Only the orchestrator needs `git -C`.
+This rule applies to **all** Bash tool calls — orchestrator and subagents alike. Do not assume subagents inherit the worktree CWD.
 
 ## Topic Mode: Step 0b — BRAINSTORM Phase
 
