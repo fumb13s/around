@@ -151,7 +151,7 @@ The `superpowers:using-git-worktrees` skill outputs the worktree path. Store it 
 WORKTREE_PATH="<path returned by using-git-worktrees>"
 ```
 
-Use `git -C "$WORKTREE_PATH"` for **all** git commands that target the worktree. This avoids `cd <path> && git <command>` chains that trigger Claude Code's bare repository security prompts.
+Use `git -C "$WORKTREE_PATH"` for all subsequent git commands (see **Git Commands** section above).
 
 ```bash
 # Verify the current branch contains this issue's number
