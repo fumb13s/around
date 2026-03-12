@@ -56,6 +56,29 @@ BOTH MODES (from here on, issue_number is always set):
   8. Ask user: mark PR ready (default) or merge
 ```
 
+## Git Commands (Worktree Convention)
+
+**All orchestrator git commands that target the worktree MUST use `git -C "$WORKTREE_PATH"`.**
+
+The orchestrator stores the worktree path in `WORKTREE_PATH` after Step 2 creates it. Every git command from Step 3 onward must use the `-C` flag to target that path. This is the single most important convention in this skill for avoiding Claude Code security prompts.
+
+**Correct:**
+```bash
+git -C "$WORKTREE_PATH" add docs/plans/*.md
+git -C "$WORKTREE_PATH" commit -m "docs: add plan"
+git -C "$WORKTREE_PATH" push -u origin feature/issue-42-foo
+```
+
+**Wrong -- NEVER do this:**
+```bash
+cd "$WORKTREE_PATH" && git add docs/plans/*.md
+cd "$WORKTREE_PATH" && git commit -m "docs: add plan"
+```
+
+The `cd && git` pattern triggers Claude Code's bare repository security prompts. The `git -C` flag runs git against a different directory without changing the shell's CWD, which avoids the prompt entirely.
+
+**Subagents are exempt:** Subagents dispatched via the Agent tool run in the worktree directory context automatically. They use plain `git add`, `git commit`, etc. Only the orchestrator needs `git -C`.
+
 ## Topic Mode: Step 0b — BRAINSTORM Phase
 
 After parsing the input (Step 0a), if topic mode is active, dispatch a brainstorming subagent.
@@ -128,7 +151,7 @@ The `superpowers:using-git-worktrees` skill outputs the worktree path. Store it 
 WORKTREE_PATH="<path returned by using-git-worktrees>"
 ```
 
-Use `git -C "$WORKTREE_PATH"` for **all** git commands that target the worktree. This avoids `cd <path> && git <command>` chains that trigger Claude Code's bare repository security prompts.
+Use `git -C "$WORKTREE_PATH"` for all subsequent git commands (see **Git Commands (Worktree Convention)** section above).
 
 ```bash
 # Verify the current branch contains this issue's number
@@ -384,6 +407,7 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 - Act on observations about other issues, PRs, or repository state that are outside the target issue's flow -- even if they seem helpful (e.g., closing duplicates, triaging, commenting on other PRs)
 - Run commands not defined in the skill flow (e.g., `gh issue close`, `gh issue edit`, `gh pr close` are never part of the lightbulb flow)
 - Work in a worktree or commit to a branch that belongs to a different issue -- if your worktree is inaccessible or the branch name doesn't match your issue number, report the error and stop
+- Use `cd` to change into a worktree directory -- not in a `cd && git` chain, not as a standalone `cd` before git commands, not ever. Use `git -C "$WORKTREE_PATH"` instead (see **Git Commands (Worktree Convention)** section)
 
 **Always:**
 - Relay brainstorming questions to the user — don't answer them yourself
@@ -395,7 +419,7 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 - In topic mode, create the GitHub issue before proceeding to the normal flow — never skip issue creation
 - Ensure all orchestrator Bash commands have matching entries in the user's `permissions.allow` — see README for the setup script and manual list
 - Verify after worktree setup that the current branch name contains your issue number -- never proceed if it doesn't match
-- Use `git -C "$WORKTREE_PATH"` for all orchestrator git commands targeting the worktree -- never use `cd <path> && git <command>` chains, as they trigger Claude Code's bare repository security prompts
+- Use `git -C "$WORKTREE_PATH"` for all orchestrator git commands targeting the worktree (see **Git Commands (Worktree Convention)** section)
 
 ## Integration
 
