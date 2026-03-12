@@ -75,7 +75,7 @@ gh pr merge 42 --squash
 gh pr ready 42 && gh pr merge 42 --squash
 ```
 
-**Subagents are exempt:** Subagents dispatched via the Agent tool run in their own context. This rule applies only to commands the orchestrator itself executes via the Bash tool.
+This rule applies to **all** Bash tool calls — orchestrator and subagents alike.
 
 ## Git Commands (Worktree Convention)
 
