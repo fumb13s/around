@@ -56,6 +56,29 @@ BOTH MODES (from here on, issue_number is always set):
   8. Ask user: mark PR ready (default) or merge
 ```
 
+## Git Commands
+
+**All orchestrator git commands that target the worktree MUST use `git -C "$WORKTREE_PATH"`.**
+
+The orchestrator stores the worktree path in `WORKTREE_PATH` after Step 2 creates it. Every git command from Step 3 onward must use the `-C` flag to target that path. This is the single most important convention in this skill for avoiding Claude Code security prompts.
+
+**Correct:**
+```bash
+git -C "$WORKTREE_PATH" add docs/plans/*.md
+git -C "$WORKTREE_PATH" commit -m "docs: add plan"
+git -C "$WORKTREE_PATH" push -u origin feature/issue-42-foo
+```
+
+**Wrong -- NEVER do this:**
+```bash
+cd "$WORKTREE_PATH" && git add docs/plans/*.md
+cd "$WORKTREE_PATH" && git commit -m "docs: add plan"
+```
+
+The `cd && git` pattern triggers Claude Code's bare repository security prompts. The `git -C` flag runs git against a different directory without changing the shell's CWD, which avoids the prompt entirely.
+
+**Subagents are exempt:** Subagents dispatched via the Agent tool run in the worktree directory context automatically. They use plain `git add`, `git commit`, etc. Only the orchestrator needs `git -C`.
+
 ## Topic Mode: Step 0b — BRAINSTORM Phase
 
 After parsing the input (Step 0a), if topic mode is active, dispatch a brainstorming subagent.
