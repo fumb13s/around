@@ -47,7 +47,7 @@ IF TOPIC MODE:
 
 BOTH MODES (from here on, issue_number is always set):
   1. Parse/fetch issue from GitHub
-  2. Set up worktree — REQUIRED SUB-SKILL: superpowers:using-git-worktrees
+  2. Set up worktree (direct git worktree add — no EnterWorktree, no cd)
   3. PLAN — dispatch planning subagent
   4. IMPLEMENT — dispatch implementation subagent
   5. Create draft PR linked to the issue
@@ -160,22 +160,35 @@ If the issue doesn't exist or is closed, tell the user and stop.
 
 ## Step 2: Set Up Worktree
 
-**REQUIRED SUB-SKILL:** Use `superpowers:using-git-worktrees` to create an isolated workspace.
+Create an isolated worktree directly using `git worktree add`. Do **not** use `EnterWorktree` or `superpowers:using-git-worktrees` — both change the session's working directory, which breaks parallel agent execution.
 
 The worktree branch name should be derived from the issue: `feature/issue-<number>-<slug>` where `<slug>` is a short kebab-case summary of the issue title.
 
-**After worktree setup, store the worktree path and verify ownership:**
+**Create the worktree** (each command as a separate Bash tool call):
 
-The `superpowers:using-git-worktrees` skill outputs the worktree path. Store it in a variable for all subsequent git operations:
+```bash
+# Ensure worktree directory exists and is gitignored
+ls -d .worktrees 2>/dev/null || mkdir .worktrees
+```
+```bash
+git check-ignore -q .worktrees || echo ".worktrees" >> .gitignore
+```
+```bash
+# Create the worktree with a new branch
+git worktree add .worktrees/issue-<number>-<slug> -b feature/issue-<number>-<slug>
+```
+
+**Store the worktree path** for all subsequent git operations:
 
 ```
-WORKTREE_PATH="<path returned by using-git-worktrees>"
+WORKTREE_PATH="<repo-root>/.worktrees/issue-<number>-<slug>"
 ```
 
 Use `git -C "$WORKTREE_PATH"` for all subsequent git commands (see **Git Commands (Worktree Convention)** section above).
 
+**Verify ownership:**
+
 ```bash
-# Verify the current branch contains this issue's number
 CURRENT_BRANCH=$(git -C "$WORKTREE_PATH" rev-parse --abbrev-ref HEAD)
 echo "$CURRENT_BRANCH" | grep -q "issue-<number>" || echo "BRANCH_MISMATCH"
 ```
@@ -439,6 +452,7 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 - Work in a worktree or commit to a branch that belongs to a different issue -- if your worktree is inaccessible or the branch name doesn't match your issue number, report the error and stop
 - Chain Bash commands with `&&` — run each command as a separate Bash tool call (see **Orchestrator Bash Commands** section)
 - Use `cd` to change into a worktree directory -- not in a `cd && git` chain, not as a standalone `cd` before git commands, not ever. Use `git -C "$WORKTREE_PATH"` instead (see **Git Commands (Worktree Convention)** section)
+- Use `EnterWorktree` or `superpowers:using-git-worktrees` -- both change the session CWD, which breaks parallel agent execution. Use `git worktree add` directly (see **Step 2**)
 
 **Always:**
 - Relay brainstorming questions to the user — don't answer them yourself
@@ -456,11 +470,11 @@ If a subagent needs user input but doesn't use the `USER_INPUT_NEEDED:` protocol
 ## Integration
 
 **Skills called (via subagents):**
-- `superpowers:using-git-worktrees` — worktree setup (orchestrator invokes directly)
 - `superpowers:brainstorming` — topic-to-issue brainstorm (topic mode, brainstorming subagent) AND design exploration (planning subagent)
 - `superpowers:writing-plans` — plan creation (planning subagent)
 - `superpowers:subagent-driven-development` — implementation (implementer subagent)
 
 **Skills NOT called:**
+- `superpowers:using-git-worktrees` — orchestrator creates worktrees directly via `git worktree add` to avoid session CWD side effects
 - `superpowers:finishing-a-development-branch` — orchestrator handles PR lifecycle directly
 - `superpowers:executing-plans` — SDD used instead
