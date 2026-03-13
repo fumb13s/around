@@ -5,7 +5,7 @@ set -euo pipefail
 # Patches Claude Code settings with permission entries required by the
 # lightbulb orchestrator so its shell commands don't trigger prompts.
 
-SCRIPT_VERSION="2"
+SCRIPT_VERSION="3"
 VERSION_KEY="_lightbulb_permissions_version"
 
 LIGHTBULB_RULES=(
@@ -14,6 +14,7 @@ LIGHTBULB_RULES=(
   'Bash(gh label create *)'
   'Bash(git check-ignore *)'
   'Bash(git worktree add *)'
+  'Bash(git -C *)'
   'Bash(cd *)'
   'Bash(git add *)'
   'Bash(git commit *)'

@@ -103,6 +103,7 @@ Add these entries to `permissions.allow` in `~/.claude/settings.json` (global) o
       "Bash(gh label create *)",
       "Bash(git check-ignore *)",
       "Bash(git worktree add *)",
+      "Bash(git -C *)",
       "Bash(cd *)",
       "Bash(git add *)",
       "Bash(git commit *)",
