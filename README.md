@@ -2,30 +2,6 @@
 
 Custom [Claude Code](https://claude.com/claude-code) skills.
 
-## Skills
-
-### lightbulb
-
-End-to-end autonomous development from a GitHub issue or a topic/idea. Takes an issue number -- or a plain-text idea that it brainstorms into an issue automatically -- and drives the full workflow: planning, implementation, code review, and PR creation, all via subagents in an isolated git worktree.
-
-**Flow:** fetch issue -> brainstorm design -> write plan -> implement (via SDD) -> create draft PR -> review loop -> CI check -> mark ready or merge
-
-### usage
-
-Show Claude Code token usage, costs, and billing breakdown. Wraps [`ccusage`](https://github.com/ryoppippi/ccusage) with an aggregation script that produces compact daily and per-project summaries.
-
-**Supports:** daily / weekly / session / block views, per-project breakdown, model-specific cost splits.
-
-## What to expect
-
-When you run `/lightbulb 42`, the skill will:
-
-1. Fetch the issue and create an isolated git worktree
-2. Brainstorm a design and write an implementation plan
-3. Implement the plan via subagents
-4. Open a draft PR and run review rounds
-5. Check CI and ask you how to finish (mark ready or merge)
-
 ## Installation
 
 ### Symlink (recommended)
@@ -35,7 +11,6 @@ Clone this repo and symlink the skills you want into your Claude Code skills dir
 ```bash
 git clone git@github.com:fumb13s/around.git ~/around
 
-# Install skills
 mkdir -p ~/.claude/skills
 ln -s ~/around/skills/lightbulb ~/.claude/skills/lightbulb
 ln -s ~/around/skills/usage ~/.claude/skills/usage
@@ -60,106 +35,38 @@ ln -s ~/around/skills/lightbulb /path/to/project/.claude/skills/lightbulb
 ln -s ~/around/skills/usage /path/to/project/.claude/skills/usage
 ```
 
-## Dependencies
+### Permissions
 
-The lightbulb skill delegates to these [superpowers](https://github.com/obra/superpowers) skills:
-
-- `superpowers:using-git-worktrees` -- worktree setup
-- `superpowers:brainstorming` -- design exploration
-- `superpowers:writing-plans` -- plan creation
-- `superpowers:subagent-driven-development` -- implementation
-
-Make sure the superpowers plugin is installed in your Claude Code instance.
-
-## Permissions
-
-Skills run shell commands that require Claude Code permission approval. Without pre-approved permissions, each command triggers an interactive prompt.
-
-### Quick setup (recommended)
-
-Each skill has its own setup script. Run the ones you need:
+Skills run shell commands that require Claude Code permission approval. Without pre-approved permissions, each command triggers an interactive prompt. Each skill has its own setup script:
 
 ```bash
-# Lightbulb permissions (git, gh, file operations)
-~/around/scripts/setup-permissions.sh
-
-# Usage permissions (npx ccusage, python3 aggregate)
-~/around/skills/usage/scripts/setup-skill-permissions.sh
+~/around/scripts/setup-permissions.sh                        # lightbulb
+~/around/skills/usage/scripts/setup-skill-permissions.sh     # usage
 ```
 
-Or for a specific project only:
+Both scripts accept `--project` (per-project instead of global), `--check` (show status), and `--remove`.
 
-```bash
-~/around/scripts/setup-permissions.sh --project
-~/around/skills/usage/scripts/setup-skill-permissions.sh --project
-```
+---
 
-Other commands (same flags for both scripts):
+## lightbulb
 
-```bash
-# Check current permission status
-~/around/scripts/setup-permissions.sh --check
-~/around/skills/usage/scripts/setup-skill-permissions.sh --check
+End-to-end autonomous development from a GitHub issue or a topic/idea. Takes an issue number -- or a plain-text idea that it brainstorms into an issue automatically -- and drives the full workflow: planning, implementation, code review, and PR creation, all via subagents in an isolated git worktree.
 
-# Remove permissions
-~/around/scripts/setup-permissions.sh --remove
-~/around/skills/usage/scripts/setup-skill-permissions.sh --remove
-```
+**Flow:** fetch issue -> brainstorm design -> write plan -> implement (via SDD) -> create draft PR -> review loop -> CI check -> mark ready or merge
 
-### Manual setup
+### What to expect
 
-Add these entries to `permissions.allow` in `~/.claude/settings.json` (global) or `.claude/settings.json` (per-project):
+When you run `/lightbulb 42`, the skill will:
 
-```json
-{
-  "permissions": {
-    "allow": [
-      "Bash(gh issue view *)",
-      "Bash(gh issue create *)",
-      "Bash(gh label create *)",
-      "Bash(git check-ignore *)",
-      "Bash(git worktree add *)",
-      "Bash(git -C * check-ignore *)",
-      "Bash(git -C * worktree add *)",
-      "Bash(git -C * add *)",
-      "Bash(git -C * commit *)",
-      "Bash(git -C * push *)",
-      "Bash(git -C * diff *)",
-      "Bash(git -C * symbolic-ref *)",
-      "Bash(git -C * rev-parse *)",
-      "Bash(cd *)",
-      "Bash(git add *)",
-      "Bash(git commit *)",
-      "Bash(git push *)",
-      "Bash(git diff *)",
-      "Bash(git symbolic-ref *)",
-      "Bash(BASE=$(git symbolic-ref *)",
-      "Bash(echo *)",
-      "Bash(gh pr create *)",
-      "Bash(gh pr comment *)",
-      "Bash(gh pr checks *)",
-      "Bash(gh pr ready *)",
-      "Bash(gh pr merge *)",
-      "Edit(*)",
-      "Write(*)",
-      "Bash(chmod *)",
-      "Bash(bash *)",
-      "Bash(grep *)",
-      "Bash(sed *)",
-      "Bash(jq *)",
-      "Bash(which *)",
-      "Bash(find *)",
-      "Bash(export *)"
-    ]
-  }
-}
-```
+1. Fetch the issue and create an isolated git worktree
+2. Brainstorm a design and write an implementation plan
+3. Implement the plan via subagents
+4. Open a draft PR and run review rounds
+5. Check CI and ask you how to finish (mark ready or merge)
 
-These patterns cover all commands the lightbulb orchestrator and its worktree setup phase execute. They use specific command prefixes rather than broad wildcards to limit the scope of auto-approval.
+### Invocation
 
-## Usage
-
-### Issue mode
+#### Issue mode
 
 Provide a GitHub issue number to develop an existing issue end-to-end:
 
@@ -169,7 +76,7 @@ Provide a GitHub issue number to develop an existing issue end-to-end:
 
 Or just tell Claude: "implement issue #42" -- the skill triggers when a GitHub issue number is provided with intent for autonomous development.
 
-### Topic mode
+#### Topic mode
 
 Provide a topic or idea instead of an issue number. The skill will brainstorm a design, file it as a GitHub issue, and then develop it end-to-end:
 
@@ -179,10 +86,54 @@ Provide a topic or idea instead of an issue number. The skill will brainstorm a 
 
 Or in natural language: "build a retry mechanism for flaky API calls" -- the skill detects that no issue number was given and enters topic mode automatically.
 
-### Options
+#### Options
 
 Set max review rounds (default 5) in natural language:
 
 ```
 implement issue #42 with at most 3 review rounds
 ```
+
+### Dependencies
+
+Delegates to these [superpowers](https://github.com/obra/superpowers) skills:
+
+- `superpowers:brainstorming` -- design exploration
+- `superpowers:writing-plans` -- plan creation
+- `superpowers:subagent-driven-development` -- implementation
+
+Make sure the superpowers plugin is installed in your Claude Code instance.
+
+---
+
+## usage
+
+Show Claude Code token usage, costs, and billing breakdown. Wraps [`ccusage`](https://github.com/ryoppippi/ccusage) with an aggregation script that produces compact daily and per-project summaries.
+
+### What it does
+
+Fetches token usage data via `ccusage`, aggregates it with a bundled Python script, and presents a summary table with output tokens, cache reads/writes, totals, and API-equivalent cost.
+
+### Invocation
+
+```
+/usage
+```
+
+Or ask in natural language: "how much am I using?", "which project costs the most?", "what's my usage this week?"
+
+### Views
+
+| View | When to use |
+|------|-------------|
+| Daily (default) | Recent trends |
+| Weekly | Longer-term patterns |
+| Session | Per-conversation breakdown |
+| Blocks | Billing period / burn rate |
+
+Add per-project breakdown, single-project filter, or model-specific cost split as needed.
+
+### Dependencies
+
+- [`ccusage`](https://github.com/ryoppippi/ccusage) -- installed on demand via `npx`
+- Python 3 -- for the aggregation script
