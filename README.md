@@ -10,6 +10,12 @@ End-to-end autonomous development from a GitHub issue or a topic/idea. Takes an 
 
 **Flow:** fetch issue -> brainstorm design -> write plan -> implement (via SDD) -> create draft PR -> review loop -> CI check -> mark ready or merge
 
+### usage
+
+Show Claude Code token usage, costs, and billing breakdown. Wraps [`ccusage`](https://github.com/ryoppippi/ccusage) with an aggregation script that produces compact daily and per-project summaries.
+
+**Supports:** daily / weekly / session / block views, per-project breakdown, model-specific cost splits.
+
 ## What to expect
 
 When you run `/lightbulb 42`, the skill will:
@@ -29,17 +35,19 @@ Clone this repo and symlink the skills you want into your Claude Code skills dir
 ```bash
 git clone git@github.com:fumb13s/around.git ~/around
 
-# Install lightbulb skill
+# Install skills
 mkdir -p ~/.claude/skills
 ln -s ~/around/skills/lightbulb ~/.claude/skills/lightbulb
+ln -s ~/around/skills/usage ~/.claude/skills/usage
 ```
 
 ### Copy
 
-Or copy the skill directory directly:
+Or copy the skill directories directly:
 
 ```bash
 cp -r skills/lightbulb ~/.claude/skills/lightbulb
+cp -r skills/usage ~/.claude/skills/usage
 ```
 
 ### Per-project
@@ -49,6 +57,7 @@ To make a skill available only in a specific project, symlink or copy into the p
 ```bash
 mkdir -p /path/to/project/.claude/skills
 ln -s ~/around/skills/lightbulb /path/to/project/.claude/skills/lightbulb
+ln -s ~/around/skills/usage /path/to/project/.claude/skills/usage
 ```
 
 ## Dependencies
@@ -64,30 +73,37 @@ Make sure the superpowers plugin is installed in your Claude Code instance.
 
 ## Permissions
 
-The lightbulb skill's orchestrator runs shell commands (`git`, `gh`) that require Claude Code permission approval. Without pre-approved permissions, each command triggers an interactive prompt.
+Skills run shell commands that require Claude Code permission approval. Without pre-approved permissions, each command triggers an interactive prompt.
 
 ### Quick setup (recommended)
 
-Run the setup script to automatically add the required permissions to your global Claude Code settings:
+Each skill has its own setup script. Run the ones you need:
 
 ```bash
+# Lightbulb permissions (git, gh, file operations)
 ~/around/scripts/setup-permissions.sh
+
+# Usage permissions (npx ccusage, python3 aggregate)
+~/around/skills/usage/scripts/setup-skill-permissions.sh
 ```
 
 Or for a specific project only:
 
 ```bash
 ~/around/scripts/setup-permissions.sh --project
+~/around/skills/usage/scripts/setup-skill-permissions.sh --project
 ```
 
-Other commands:
+Other commands (same flags for both scripts):
 
 ```bash
 # Check current permission status
 ~/around/scripts/setup-permissions.sh --check
+~/around/skills/usage/scripts/setup-skill-permissions.sh --check
 
-# Remove lightbulb permissions
+# Remove permissions
 ~/around/scripts/setup-permissions.sh --remove
+~/around/skills/usage/scripts/setup-skill-permissions.sh --remove
 ```
 
 ### Manual setup
