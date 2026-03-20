@@ -4,47 +4,34 @@ Custom [Claude Code](https://claude.com/claude-code) skills.
 
 ## Installation
 
-### Symlink (recommended)
-
-Clone this repo and symlink the skills you want into your Claude Code skills directory:
+Clone the repo and run the install script:
 
 ```bash
 git clone git@github.com:fumb13s/around.git ~/around
-
-mkdir -p ~/.claude/skills
-ln -s ~/around/skills/lightbulb ~/.claude/skills/lightbulb
-ln -s ~/around/skills/usage ~/.claude/skills/usage
+~/around/install.sh
 ```
 
-### Copy
+This symlinks all skills into `~/.claude/skills/` and installs their permissions.
 
-Or copy the skill directories directly:
+### Options
 
 ```bash
-cp -r skills/lightbulb ~/.claude/skills/lightbulb
-cp -r skills/usage ~/.claude/skills/usage
+# Install specific skills only
+~/around/install.sh lightbulb
+~/around/install.sh usage
+
+# Copy instead of symlink
+~/around/install.sh --copy
+
+# Install into the current project instead of user-level
+~/around/install.sh --project
+
+# Check installation status
+~/around/install.sh --check
+
+# Remove skills and permissions
+~/around/install.sh --remove
 ```
-
-### Per-project
-
-To make a skill available only in a specific project, symlink or copy into the project's `.claude/skills/` directory instead:
-
-```bash
-mkdir -p /path/to/project/.claude/skills
-ln -s ~/around/skills/lightbulb /path/to/project/.claude/skills/lightbulb
-ln -s ~/around/skills/usage /path/to/project/.claude/skills/usage
-```
-
-### Permissions
-
-Skills run shell commands that require Claude Code permission approval. Without pre-approved permissions, each command triggers an interactive prompt. Each skill has its own setup script:
-
-```bash
-~/around/scripts/setup-permissions.sh                        # lightbulb
-~/around/skills/usage/scripts/setup-skill-permissions.sh     # usage
-```
-
-Both scripts accept `--project` (per-project instead of global), `--check` (show status), and `--remove`.
 
 ---
 

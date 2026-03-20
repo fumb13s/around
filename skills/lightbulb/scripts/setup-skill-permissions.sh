@@ -45,4 +45,4 @@ SKILL_RULES=(
 )
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-source "$SCRIPT_DIR/permissions-core.sh"
+source "$SCRIPT_DIR/../../../scripts/permissions-core.sh"
