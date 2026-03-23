@@ -103,13 +103,16 @@ def print_table(title, rows, label_header="Date"):
 
 def main():
     parser = argparse.ArgumentParser(description="Aggregate ccusage JSON output")
-    parser.add_argument("file", help="Path to ccusage JSON output")
+    parser.add_argument("file", nargs="?", help="Path to ccusage JSON output (reads stdin if omitted)")
     parser.add_argument("--expand-worktrees", action="store_true",
                         help="Show individual worktree sessions instead of aggregating into --hivemind-agents")
     args = parser.parse_args()
 
-    with open(args.file) as f:
-        data = json.load(f)
+    if args.file:
+        with open(args.file) as f:
+            data = json.load(f)
+    else:
+        data = json.load(sys.stdin)
 
     if "projects" in data:
         daily, project_totals = aggregate_instances(data, args.expand_worktrees)
