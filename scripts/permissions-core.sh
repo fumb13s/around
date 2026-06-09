@@ -59,6 +59,13 @@ done
 
 # --- helpers ---
 
+capitalize() {
+  # Uppercase the first character only -- portable stand-in for bash 4's
+  # ${var^}, which macOS's stock bash 3.2 doesn't support.
+  local s="$1"
+  printf '%s%s' "$(printf '%s' "${s:0:1}" | tr '[:lower:]' '[:upper:]')" "${s:1}"
+}
+
 ensure_jq() {
   if ! command -v jq &>/dev/null; then
     echo "Error: jq is required but not installed." >&2
@@ -147,7 +154,7 @@ do_install() {
   current_version=$(read_current_version)
 
   if [[ "$current_version" == "$SCRIPT_VERSION" ]]; then
-    echo "${SKILL_NAME^} permissions already at version $SCRIPT_VERSION in $SETTINGS_FILE"
+    echo "$(capitalize "$SKILL_NAME") permissions already at version $SCRIPT_VERSION in $SETTINGS_FILE"
     echo "Run with --check to verify individual rules, or --remove then re-run to reinstall."
     exit 0
   fi
@@ -168,7 +175,7 @@ do_install() {
   echo "Installed ${SKILL_NAME} permissions (version $SCRIPT_VERSION) in $SETTINGS_FILE"
   echo ""
   echo "${#SKILL_RULES[@]} permission rules added."
-  echo "${SKILL_NAME^} skill commands will no longer prompt for approval."
+  echo "$(capitalize "$SKILL_NAME") skill commands will no longer prompt for approval."
 }
 
 do_remove() {
