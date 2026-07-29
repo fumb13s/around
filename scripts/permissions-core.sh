@@ -6,8 +6,21 @@
 #   SCRIPT_VERSION  version string (e.g. "3")
 #   VERSION_KEY     settings JSON key (e.g. "_lightbulb_permissions_version")
 #   SKILL_RULES     bash array of permission rules
+#
+# Optionally:
+#   SKILL_LEGACY_RULES  bash array of rules from earlier SCRIPT_VERSIONs that
+#                       are no longer in SKILL_RULES. The version-bump purge
+#                       only removes rules present in the *current* SKILL_RULES
+#                       array, so a rule that was renamed or dropped would
+#                       otherwise linger in settings.json forever. List it here
+#                       and it gets purged on every install.
 
 set -euo pipefail
+
+# Default the optional array so `set -u` doesn't trip on skills that omit it.
+if [[ -z "${SKILL_LEGACY_RULES+x}" ]]; then
+  SKILL_LEGACY_RULES=()
+fi
 
 # --- argument parsing ---
 
@@ -101,11 +114,21 @@ build_jq_add_filter() {
 build_jq_remove_filter() {
   local filter=''
   filter="del(.permissions.${VERSION_KEY})"
-  for rule in "${SKILL_RULES[@]}"; do
+  for rule in "${SKILL_RULES[@]}" ${SKILL_LEGACY_RULES[@]+"${SKILL_LEGACY_RULES[@]}"}; do
     filter="${filter} | .permissions.allow = ((.permissions.allow // []) - [\"${rule}\"])"
   done
   filter="${filter} | if (.permissions.allow | length) == 0 then del(.permissions.allow) else . end"
   filter="${filter} | if (.permissions | length) == 0 then del(.permissions) else . end"
+  echo "$filter"
+}
+
+# Purge superseded rules only -- runs on every install, including a fresh one,
+# so a box that picked up a legacy rule by some other route still gets cleaned.
+build_jq_legacy_purge_filter() {
+  local filter='.'
+  for rule in ${SKILL_LEGACY_RULES[@]+"${SKILL_LEGACY_RULES[@]}"}; do
+    filter="${filter} | .permissions.allow = ((.permissions.allow // []) - [\"${rule}\"])"
+  done
   echo "$filter"
 }
 
@@ -147,6 +170,18 @@ do_check() {
     echo ""
     echo "$missing of ${#SKILL_RULES[@]} rules missing."
   fi
+
+  local stale=0
+  for rule in ${SKILL_LEGACY_RULES[@]+"${SKILL_LEGACY_RULES[@]}"}; do
+    if echo "$allow_array" | grep -qF "$rule"; then
+      if [[ $stale -eq 0 ]]; then
+        echo ""
+        echo "Superseded rules still present (re-run install to purge):"
+      fi
+      echo "  [stale] $rule"
+      stale=$((stale + 1))
+    fi
+  done
 }
 
 do_install() {
@@ -165,6 +200,13 @@ do_install() {
     remove_filter=$(build_jq_remove_filter)
     TMPFILE=$(mktemp)
     jq "$remove_filter" "$SETTINGS_FILE" > "$TMPFILE" && mv "$TMPFILE" "$SETTINGS_FILE"
+  fi
+
+  local legacy_filter
+  legacy_filter=$(build_jq_legacy_purge_filter)
+  if [[ "$legacy_filter" != "." ]]; then
+    TMPFILE=$(mktemp)
+    jq "$legacy_filter" "$SETTINGS_FILE" > "$TMPFILE" && mv "$TMPFILE" "$SETTINGS_FILE"
   fi
 
   local add_filter
